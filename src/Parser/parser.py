@@ -1,3 +1,5 @@
+import re
+
 class Shift:
     def __init__(self, shiftID, duration, shiftsIDCantFollow):
         self.shiftID = shiftID
@@ -34,17 +36,6 @@ class Nurse:
         self.daysOff = []
         self.shiftOnRequest = []
         self.shiftOffRequest = []
-    
-    def addDaysOff(self, daysOff):
-        return
-    
-    def addShiftOnRequest(self, shiftOnRequest):
-        return
-
-    def addShiftOnRequest(self, shiftOnRequest):
-        return
-
-
 
 class Parser:
     def __init__(self, filepath):
@@ -52,6 +43,7 @@ class Parser:
         self.numberOfDays = 0
         self.minRestTime = 0
         self.shifts = []
+        self.nurses = []
         self.covers = []
 
     def parseFile(self): 
@@ -103,7 +95,43 @@ class Parser:
                     
                     
     def parseStaff(self):   
-        return
+        foundSection = False
+        sectionName = 'SECTION_STAFF'
+        with open(self.filepath, 'r') as f:
+            for line in f:
+                if sectionName in line: # Search Section
+                    foundSection = True
+                    continue
+
+                if foundSection and (line in ['\n', '\r\n']): # End Section
+                    return
+
+                if foundSection and not line.startswith('#'): # Found section
+                    lineList = line.rstrip().split(',')
+
+                    nurseID = lineList[0]
+                    maxTotalMinutes = int(lineList[2])
+                    minTotalMinutes = int(lineList[3])
+                    maxConsecutiveShifts = int(lineList[4])
+                    minConsecutiveShifts = int(lineList[5])
+                    minConsecutiveDaysOff = int(lineList[6])
+                    maxWeekends = int(lineList[7])
+                    maxShifts = []
+
+                    maxShiftsList = lineList[1].rstrip().split('|')
+                    for maxShiftItem in maxShiftsList:
+                        shiftID = maxShiftItem.split('=')[0]
+                        maxShift = int(maxShiftItem.split('=')[1])
+                        #maxShifts.append({'shiftID':shiftID,'maxShift':maxShift})
+                        maxShifts.append((shiftID, maxShift))
+
+                    self.nurses.append(Nurse(nurseID, maxShifts,
+                    maxTotalMinutes, minTotalMinutes, maxConsecutiveShifts, 
+                    minConsecutiveShifts, minConsecutiveDaysOff, maxWeekends))
+                    # print(nurseID, maxShifts,
+                    #maxTotalMinutes, minTotalMinutes, maxConsecutiveShifts, 
+                    #minConsecutiveShifts, minConsecutiveDaysOff, maxWeekends)
+                    
 
     def parseDaysOff(self):
         foundSection = False
@@ -120,10 +148,14 @@ class Parser:
                 if foundSection and not line.startswith('#'): # Found section
                     lineList = line.rstrip().split(',')
                     nurseID = lineList[0]
-                    daysOff = [int(dayOff) for dayOff in lineList[1:]]                    
-                    # print(nurseID, daysOff)
-                    # TODO
-                    # ADD to Nurse ARRAY
+                    daysOff = [int(dayOff) for dayOff in lineList[1:]]
+                    
+                    for nurse in self.nurses:
+                        if nurse.nurseID == nurseID:
+                            nurse.daysOff = daysOff
+                            # print(nurseID, nurse.daysOff)
+                            break
+
 
 
     def parseShiftOnRequests(self):
@@ -145,12 +177,15 @@ class Parser:
                     day = int(lineList[1])
                     shiftID = lineList[2]
                     weight = int(lineList[3])
-                    OnRequest = True
+                    onRequest = True
+                    request = Request(day, shiftID, weight, onRequest)
+
+                    for nurse in self.nurses:
+                        if nurse.nurseID == nurseID:
+                            nurse.shiftOnRequest.append(request)
+                            break
                     # Request(day, shiftID, weight, OnRequest)
                     # print(nurseID, day, shiftID, weight, OnRequest)
-                    # TODO
-                    # ADD to Nurse ARRAY
-
 
 
     def parseShiftOffRequests(self):
@@ -172,11 +207,15 @@ class Parser:
                     day = int(lineList[1])
                     shiftID = lineList[2]
                     weight = int(lineList[3])
-                    OnRequest = False
+                    onRequest = False
+                    request = Request(day, shiftID, weight, onRequest)
+
+                    for nurse in self.nurses:
+                        if nurse.nurseID == nurseID:
+                            nurse.shiftOffRequest.append(request)
+                            break
                     # Request(day, shiftID, weight, OnRequest)
                     # print(nurseID, day, shiftID, weight, OnRequest)
-                    # TODO
-                    # ADD to Nurse ARRAY
 
     def parseCover(self):    
         foundSection = False
@@ -198,8 +237,10 @@ class Parser:
                     weightUnder = int(lineList[3])
                     weightOver = int(lineList[4])
                     self.covers.append(Cover(day, shiftID, required, weightUnder, weightOver))
-                    print(day, shiftID, required, weightUnder, weightOver)
+                    #print(day, shiftID, required, weightUnder, weightOver)
 
+
+# Main
 DATASET_PATH = '../../Dataset/Instance24.txt'
 p1 = Parser(DATASET_PATH)
 p1.parseFile()
