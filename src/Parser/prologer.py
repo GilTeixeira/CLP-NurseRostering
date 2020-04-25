@@ -30,7 +30,7 @@ class Prologer:
     def convertShifts(self):
         self.prologCode += '\n'
         for shift in self.hospital.shifts:
-            self.prologCode += "shift(\'%s\',%d,%s).\n" % (shift.shiftID,shift.duration,str(shift.shiftsIDCantFollow))
+            self.prologCode += "shift(%d,%d,%s).\n" % (shift.shiftIntID,shift.duration,str(self.hospital.getShiftsIntID(shift.shiftsIDCantFollow)))  
         #self.prologCode += "numberOfDays(%d)." %  self.hospital.numberOfDays
         self.prologCode += '\n'
 
@@ -40,7 +40,8 @@ class Prologer:
     def convertStaff(self):
         self.prologCode += '\n'
         for nurse in self.hospital.nurses:
-            self.prologCode += "nurse(\'%s\',%s,%d,%d,%d,%d,%d,%d).\n" % (nurse.nurseID, str(nurse.maxShifts),
+            maxShiftsWithIntID = [(self.hospital.getShiftIntID(shiftID),maxShift) for (shiftID, maxShift) in nurse.maxShifts]
+            self.prologCode += "nurse(%d,%s,%d,%d,%d,%d,%d,%d).\n" % (nurse.nurseIntID, str(maxShiftsWithIntID),
                 nurse.maxTotalMinutes, nurse.minTotalMinutes, nurse.maxConsecutiveShifts, 
                 nurse.minConsecutiveShifts, nurse.minConsecutiveDaysOff, nurse.maxWeekends)
         #self.prologCode += "numberOfDays(%d)." %  self.hospital.numberOfDays
@@ -49,14 +50,14 @@ class Prologer:
     def convertDaysOff(self):
         self.prologCode += "\n"
         for nurse in self.hospital.nurses:
-            self.prologCode += "days_off(\'%s\',%s).\n" % (nurse.nurseID,str(nurse.daysOff))
+            self.prologCode += "days_off(%d,%s).\n" % (nurse.nurseIntID,str(nurse.daysOff))
         self.prologCode += "\n"
 
     def convertShiftOnRequests(self):
         self.prologCode += "\n"
         for nurse in self.hospital.nurses:
             for request in nurse.shiftOnRequests:
-                self.prologCode += "shift_on_request(\'%s\',%d,\'%s\',%d).\n" % (nurse.nurseID,request.day,request.shiftID,request.weight)
+                self.prologCode += "shift_on_request(%d,%d,%d,%d).\n" % (nurse.nurseIntID,request.day,self.hospital.getShiftIntID(request.shiftID),request.weight)
         self.prologCode += "\n"
     
     # day, shiftID, weight, OnRequest
@@ -64,13 +65,13 @@ class Prologer:
         self.prologCode += "\n"
         for nurse in self.hospital.nurses:
             for request in nurse.shiftOffRequests:
-                self.prologCode += "shift_off_request(\'%s\',%d,\'%s\',%d).\n" % (nurse.nurseID,request.day,request.shiftID,request.weight)
+                self.prologCode += "shift_off_request(%d,%d,%d,%d).\n" % (nurse.nurseIntID,request.day,self.hospital.getShiftIntID(request.shiftID),request.weight)
         self.prologCode += "\n"
     
     #day, shiftID, required, weightUnder, weightOver
     def convertCover(self):
         self.prologCode += "\n"
         for cover in self.hospital.covers:
-            self.prologCode += "cover(%d,\'%s\',%d,%d,%d).\n" % (cover.day, cover.shiftID, cover.required, cover.weightUnder, cover.weightOver)
+            self.prologCode += "cover(%d,%d,%d,%d,%d).\n" % (cover.day, self.hospital.getShiftIntID(cover.shiftID), cover.required, cover.weightUnder, cover.weightOver)
         self.prologCode += "\n"
 
