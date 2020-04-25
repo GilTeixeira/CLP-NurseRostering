@@ -3,7 +3,7 @@ from prologer import Prologer
 
 # Main
 
-DATASET_PATH = '../../Dataset/Instance24.txt'
+DATASET_PATH = '../../Dataset/Instance2.txt'
 #DATASET_PATH = '../../Dataset/Instance2.txt'
 
 p1 = Parser(DATASET_PATH)
