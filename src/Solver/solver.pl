@@ -6,9 +6,12 @@
 :- include('statistics.pl').
 :- include('data.pl').
 :- include('matrixUtils.pl').
+:- include('constrains.pl').
+:- include('queries.pl').
 
 %nurse_problem_solver(Schedule) 
 solver(Schedule):-
+	
 
 	% Variables
 	number_of_days(NDays),
@@ -17,34 +20,35 @@ solver(Schedule):-
 	% aggregate_all(ShiftID, shift(ShiftID,_,_), NShifts),
 	%aggregate(count,ShiftID, shift(ShiftID,_,_),NShifts),
 
-	findall(ShiftID, shift(ShiftID,_,_), ListOfShiftIDs), 
-	length(ListOfShiftIDs, NShifts),
+	get_number_shifts(NShifts),
 	%write('NShifts: '), write(ListOfShiftIDs), write(NShifts),nl,
 
-	findall(NurseID, nurse(NurseID,_,_,_,_,_,_,_), ListOfNurseIDs), 
-	length(ListOfNurseIDs, NNurses),
+	get_number_nurses(NNurses),
 	%aggregate(count, nurse(_,_,_,_,_,_,_,_), NNurses),	
 	%write('NNurses: '),write(ListOfNurseIDs), write(NNurses),nl,
 
 	gen_matrix(NNurses, NDays, Schedule),
 
-
 	% Variables Domain
 	term_variables(Schedule, Vars),
 	domain(Vars,0,NShifts),
-	length(Vars,NVars),
+	
+	%length(Vars,NVars),
 	%write(NVars),
 
 	% Constrains
 
 	% Constrain 1
-	% HC1 : Maximum one shift per day 
+	% HC1 : Maximum one shift per day
+	% Already Defined in the domain 
 	
 	% Constrain 2
-	% HC2 : Shift rotations 
+	% HC2 : Shift rotations
+	set_shift_rotations(Schedule),
 	
 	% Constrain 3
-	% HC3: Maximum number of shifts 
+	% HC3: Maximum number of shifts
+	 
 	
 	% Constrain 4
 	% HC4 : Maximum total minutes 
@@ -65,7 +69,9 @@ solver(Schedule):-
 	% HC9 : Maximum number of weekends 
 	
 	% Constrain 10
-	% HC10 : Requested days off 
+	% HC10 : Requested days off
+	% set_nurses_days_off(Schedule),
+
 
 	% Soft Constrains
 	% SC1 : Shift on requests 
