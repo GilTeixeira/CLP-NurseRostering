@@ -57,6 +57,7 @@ solver(Schedule):-
 	
 	% Constrain 5
 	% HC5 : Minimum total minutes 
+	%set_min_minutes(Schedule),
 	
 	% Constrain 6
 	% HC6 : Maximum consecutive shifts 
@@ -83,6 +84,9 @@ solver(Schedule):-
 
 	%% Search
 	labeling([],Vars),
+	nl,
+	nl,
+	displayMat(Schedule),
 	
 	nl.
 
