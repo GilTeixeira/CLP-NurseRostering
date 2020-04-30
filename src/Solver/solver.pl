@@ -20,16 +20,17 @@ solver(Schedule):-
 	% aggregate_all(ShiftID, shift(ShiftID,_,_), NShifts),
 	%aggregate(count,ShiftID, shift(ShiftID,_,_),NShifts),
 
-	get_number_shifts(NShifts),
+	get_number_shifts(NShifts), % TODO: change to assertz
 	%write('NShifts: '), write(ListOfShiftIDs), write(NShifts),nl,
 
-	get_number_nurses(NNurses),
+	get_number_nurses(NNurses), % TODO: change to assertz
 	%aggregate(count, nurse(_,_,_,_,_,_,_,_), NNurses),	
 	%write('NNurses: '),write(ListOfNurseIDs), write(NNurses),nl,
 
 	gen_matrix(NNurses, NDays, Schedule),
 
 	% Variables Domain
+	% TODO: FOr every nurse get shifts (s)he can do
 	term_variables(Schedule, Vars),
 	domain(Vars,0,NShifts),
 	
@@ -48,6 +49,7 @@ solver(Schedule):-
 	
 	% Constrain 3
 	% HC3: Maximum number of shifts
+	set_max_shifts(Schedule),
 	 
 	
 	% Constrain 4

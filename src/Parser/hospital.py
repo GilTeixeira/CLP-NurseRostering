@@ -1,5 +1,5 @@
 class Shift:
-    lastID = 0
+    lastID = 1
     def __init__(self, shiftID, duration, shiftsIDCantFollow):
         self.shiftID = shiftID
         self.shiftIntID = Shift.lastID
@@ -9,7 +9,7 @@ class Shift:
         Shift.lastID += 1
 
 class Request:
-    lastID = 0
+    lastID = 1
     def __init__(self, day, shiftID, weight, OnRequest):
         self.day=day
         self.shiftID=shiftID
@@ -25,7 +25,7 @@ class Cover:
       self.weightOver = weightOver
 
 class Nurse:
-    lastID = 0
+    lastID = 1
     def __init__(self, nurseID, maxShifts,
     maxTotalMinutes, minTotalMinutes, maxConsecutiveShifts, 
     minConsecutiveShifts, minConsecutiveDaysOff, maxWeekends):
