@@ -9,36 +9,64 @@
     % TODO
 %    set_nurse_days_off(NurseID, DaysOff, Schedule).
 
-% BIG PROBLEM !!!
-% TODO: Not sure if forall or foreach
-
 
 % Constrain 2
 % HC2 : Shift rotations
 set_shift_rotations(Schedule):-
-    forall(shift(ShiftID,_,ImpossibleShifts), set_shift_rotation_schedule(ShiftID,ImpossibleShifts,Schedule)).
+    setof([ShiftID, ImpossibleShifts], shift(ShiftID,_,ImpossibleShifts), Shifts),
+    %write(Shifts),nl,
+    maplist(set_shift_rotation_schedule(Schedule),Shifts).
+    %forall(shift(ShiftID,_,ImpossibleShifts), set_shift_rotation_schedule(ShiftID,ImpossibleShifts,Schedule)).
 
-set_shift_rotation_schedule(_,_,[]).
-set_shift_rotation_schedule(ShiftID,ImpossibleShifts,[ScheduleNurse|ScheduleRemain]):-
-    set_shift_rotation_nurse(ShiftID,ImpossibleShifts,ScheduleNurse),
-    set_shift_rotation_schedule(ShiftID,ImpossibleShifts,ScheduleRemain).
+set_shift_rotation_schedule([],_).
+set_shift_rotation_schedule(_,[_,[]]). % Otimization 4.2.2
+set_shift_rotation_schedule([ScheduleNurse|ScheduleRemain], [ShiftID,ImpossibleShifts]):-
+    %length([ScheduleNurse|ScheduleRemain], N),    
+    %write(N),nl,
+    %write([ShiftID,ImpossibleShifts]),nl,nl,nl,
+    set_shift_rotation_nurse(ScheduleNurse, [ShiftID,ImpossibleShifts]),
+    set_shift_rotation_schedule(ScheduleRemain, [ShiftID,ImpossibleShifts]).
 
 % TODO : Optimization FDSEt from prologer
-set_shift_rotation_nurse(_, _, [_]).
-set_shift_rotation_nurse(ShiftID, ImpossibleShifts, [ScheduleDay,ScheduleNextDay|ScheduleNurseRemain]):-
+set_shift_rotation_nurse([_],_).
+set_shift_rotation_nurse([ScheduleDay,ScheduleNextDay|ScheduleNurseRemain], [ShiftID, ImpossibleShifts]):-
     %write(ScheduleDay), nl,
     %write(ShiftID), nl,
     %write(ScheduleNextDay), nl,
     %write(ImpossibleShifts), nl,
     list_to_fdset(ImpossibleShifts,ImpossibleShiftsFDSet),
     (ScheduleDay #= ShiftID) #=> #\(ScheduleNextDay in_set ImpossibleShiftsFDSet),
-    set_shift_rotation_nurse(ShiftID, ImpossibleShifts, [ScheduleNextDay|ScheduleNurseRemain]).
+    set_shift_rotation_nurse([ScheduleNextDay|ScheduleNurseRemain], [ShiftID, ImpossibleShifts]).
+
 
 
 % TODO: Otimization when nurse can only do 1 shift
 % ID, MaxShifts, MaxTotalMinutes, MinTotalMinutes, MaxConsecutiveShifts, MinConsecutiveShifts, MinConsecutiveDaysOff, MaxWeekends
 % Constrain 3
-	% HC3: Maximum number of shifts
+% HC3: Maximum number of shifts
+set_max_shifts(Schedule):-
+    setof([NurseID, MaxShifts], nurse(NurseID,MaxShifts,_,_,_,_,_,_), Nurses),
+    maplist(set_max_shifts_schedule(Schedule),Nurses).
+
+set_max_shifts_schedule(Schedule, [NurseID,MaxShifts]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    %get_number_shifts(NShifts),
+   %get_shifts_list(ShiftsList),
+    create_global_cardinal_vals(MaxShifts,Vals),
+    %write(Vals),
+    global_cardinality(NurseSchedule, Vals).
+
+
+create_global_cardinal_vals([],[]).
+create_global_cardinal_vals([(ShiftID, MaxShift)|MaxShifts],[Val|Vals]):-
+    Val = ShiftID-V,
+    V #=< MaxShift,
+    create_global_cardinal_vals(MaxShifts,Vals).
+
+
+
+%%% old c3
+/*
 set_max_shifts(Schedule):-
     forall(shift(NurseID,MaxShifts,_,_,_,_,_,_), set_max_shifts_schedule(NurseID,MaxShifts,Schedule)). 
 % TODO OPTIMIZATION:- find nurse schedule every time
@@ -53,6 +81,8 @@ createListDiff(NShifts,[ShiftID|ShiftsList],[ListHead|List]):-
     createListDiff(NShiftsMinus1, ShiftsList, List).
 
 
+
+
 set_max_shifts_schedule(NurseID,MaxShifts,Schedule):-
     nth1(NurseID,Schedule,NurseSchedule),
     get_number_shifts(NShifts),
@@ -61,3 +91,4 @@ set_max_shifts_schedule(NurseID,MaxShifts,Schedule):-
     length(Length, NShifts),
     global_cardinality(NurseSchedule).
 
+*/
