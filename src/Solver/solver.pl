@@ -61,6 +61,7 @@ solver(Schedule):-
 	
 	% Constrain 6
 	% HC6 : Maximum consecutive shifts 
+	set_max_consec_shifts(Schedule),
 	
 	% Constrain 7
 	% HC7 : Minimum consecutive shifts 

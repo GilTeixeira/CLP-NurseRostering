@@ -19,6 +19,7 @@ set_shift_rotation_schedule([ScheduleNurse|ScheduleRemain], [ShiftID,ImpossibleS
 set_shift_rotation_nurse([_],_).
 set_shift_rotation_nurse([ScheduleDay,ScheduleNextDay|ScheduleNurseRemain], [ShiftID, ImpossibleShifts]):-
     list_to_fdset(ImpossibleShifts,ImpossibleShiftsFDSet),
+    %write(ImpossibleShifts),write(ImpossibleShiftsFDSet),nl,
     (ScheduleDay #= ShiftID) #=> #\(ScheduleNextDay in_set ImpossibleShiftsFDSet),
     set_shift_rotation_nurse([ScheduleNextDay|ScheduleNurseRemain], [ShiftID, ImpossibleShifts]).
 
@@ -54,6 +55,49 @@ create_global_cardinal_vals([(ShiftID, MaxShift)|MaxShifts],[ShiftCounter|Shifts
     ShiftCounter #=< MaxShift,
     create_global_cardinal_vals(MaxShifts,ShiftsCounter,Vals).
 
+
+% Constrain 6
+% HC6: Maximum consecutive shifts
+set_max_consec_shifts(Schedule):-
+    findall([NurseID, MaxConsecutiveShifts], nurse(NurseID,_,_, _,MaxConsecutiveShifts,_,_,_), Nurses),
+    maplist(set_max_consec_shifts_schedule(Schedule),Nurses).
+
+set_max_consec_shifts_schedule(Schedule, [NurseID, MaxConsecutiveShifts]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts).
+
+%MaxConsecutiveShifts = 2
+
+
+exactly(_, [], 0).
+exactly(X, [Y|L], N) :-
+    X #= Y #<=> B,
+    N #= M+B,
+    exactly(X, L, M).
+
+set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
+    length(NurseSchedule, MaxConsecutiveShifts).
+
+
+set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
+    prefix_length(NurseSchedule, FirstDays, MaxConsecutiveShifts),
+    nth0(MaxConsecutiveShifts,NurseSchedule,NextDay),
+    %get_shifts_list(ShiftsList),
+    %write(ShiftsList),nl,
+    %list_to_fdset(ShiftsList,ShiftsFDSet),
+    %write(ShiftsFDSet),nl,
+    exactly(0,FirstDays,NumberDaysOff),
+    (NumberDaysOff #= 0) #=> (NextDay #=0),
+    %write('does not get here'),
+    NurseSchedule = [_|ScheduleNurseRemain],
+    set_max_consec_shifts_nurse(ScheduleNurseRemain,MaxConsecutiveShifts).
+
+
+
+
+
+% Constrain 7
+% HC6: Maximum consecutive shifts
 
 
 %%% old c3
