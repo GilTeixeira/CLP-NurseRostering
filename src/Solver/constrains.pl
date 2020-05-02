@@ -66,9 +66,6 @@ set_max_consec_shifts_schedule(Schedule, [NurseID, MaxConsecutiveShifts]):-
     nth1(NurseID,Schedule,NurseSchedule),
     set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts).
 
-%MaxConsecutiveShifts = 2
-
-
 exactly(_, [], 0).
 exactly(X, [Y|L], N) :-
     X #= Y #<=> B,
@@ -82,13 +79,8 @@ set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
 set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
     prefix_length(NurseSchedule, FirstDays, MaxConsecutiveShifts),
     nth0(MaxConsecutiveShifts,NurseSchedule,NextDay),
-    %get_shifts_list(ShiftsList),
-    %write(ShiftsList),nl,
-    %list_to_fdset(ShiftsList,ShiftsFDSet),
-    %write(ShiftsFDSet),nl,
     exactly(0,FirstDays,NumberDaysOff),
     (NumberDaysOff #= 0) #=> (NextDay #=0),
-    %write('does not get here'),
     NurseSchedule = [_|ScheduleNurseRemain],
     set_max_consec_shifts_nurse(ScheduleNurseRemain,MaxConsecutiveShifts).
 
@@ -97,8 +89,32 @@ set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
 
 
 % Constrain 7
-% HC6: Maximum consecutive shifts
+% HC6: Minimum consecutive shifts
+/*
+automaton is the answer
+set_min_consec_shifts(Schedule):-
+    findall([NurseID, MinConsecutiveShifts], nurse(NurseID,_,_, _,_,MinConsecutiveShifts,_,_), Nurses),
+    maplist(set_min_consec_shifts_schedule(Schedule),Nurses).
 
+set_min_consec_shifts_schedule(Schedule, [NurseID, MinConsecutiveShifts]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    set_min_consec_shifts_nurse(NurseSchedule,MinConsecutiveShifts).
+
+set_min_consec_shifts_nurse(NurseSchedule,MinConsecutiveShifts):-
+    length(NurseSchedule, MinConsecutiveShifts).
+
+
+set_min_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
+    prefix_length(NurseSchedule, FirstDays, MaxConsecutiveShifts),
+    nth0(MaxConsecutiveShifts,NurseSchedule,NextDay),
+    exactly(0,FirstDays,NumberDaysOff),
+    (NumberDaysOff #= 0) #=> (NextDay #=0),
+    NurseSchedule = [_|ScheduleNurseRemain],
+    set_max_consec_shifts_nurse(ScheduleNurseRemain,MaxConsecutiveShifts).
+
+
+
+*/
 
 %%% old c3
 /*
