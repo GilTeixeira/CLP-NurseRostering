@@ -133,6 +133,123 @@ create_arcs_min_consec_aux(MinConsecutiveShifts,Counter,Arcs):-
     create_arcs_min_consec_aux(MinConsecutiveShifts,CounterPlus1,ArcsRemain).
 
 
+% Constrain 8
+% HC6: Minimum Consecutive Days Off
+
+set_min_consec_days_off(Schedule):-
+    findall([NurseID, MinConsecutiveDaysOff], nurse(NurseID,_,_, _,_,_,MinConsecutiveDaysOff,_), Nurses),
+    maplist(set_min_consec_days_off_schedule(Schedule),Nurses).
+
+set_min_consec_days_off_schedule(Schedule, [NurseID, MinConsecutiveDaysOff]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    set_min_consec_days_off_nurse(NurseSchedule,MinConsecutiveDaysOff).
+
+set_min_consec_days_off_nurse(NurseSchedule, MinConsecutiveDaysOff):-
+    create_arcs_min_consec_days_off(MinConsecutiveDaysOff,Arcs),
+    create_sources_sinks_min_consec_days_off(MinConsecutiveDaysOff,SourcesSinks),
+    %!,
+    %write(SourcesSinks),nl,
+    %write(Arcs),nl,
+    automaton(NurseSchedule,SourcesSinks,Arcs).
+
+create_sources_sinks_min_consec_days_off(MinConsecutiveDaysOff,SourcesSinks):-
+    SourcesSinksAux = [source(nw),sink(nw),sink(w0)],
+    findall(sink(ShiftDay),between(1,MinConsecutiveDaysOff,ShiftDay), Sinks),
+    append(SourcesSinksAux,Sinks,SourcesSinks).
+
+
+create_arcs_min_consec_days_off(MinConsecutiveDaysOff,Arcs):-
+    create_arcs_min_consec_days_off_aux(MinConsecutiveDaysOff,1,Arcs).
+
+create_arcs_min_consec_days_off_aux(MinConsecutiveDaysOff,MinConsecutiveDaysOff,Arcs):-
+    create_arcs_per_shift(w0,w0,ArcsW0), 
+    create_arcs_per_shift(nw,w0,ArcsNWToW0),
+    create_arcs_per_shift(MinConsecutiveDaysOff,w0,ArcsLastDayToNW),
+    InitialArcs = [arc(nw,0,nw),arc(w0,0,1)],
+    append(ArcsW0,ArcsNWToW0,ArcsAux),
+    append(ArcsLastDayToNW,ArcsAux,ArcsAux2),
+    append(InitialArcs,ArcsAux2,Arcs).
+    %printBoardLine(Arcs).
+
+
+create_arcs_min_consec_days_off_aux(MinConsecutiveShifts,Counter,Arcs):-
+    CounterPlus1 is Counter+1,
+    %ArcsW =  [arc(CounterPlus1,0,Counter+1)],
+    %append(ArcsW,ArcsRemain,Arcs),
+    Arcs = [arc(Counter,0,CounterPlus1)|ArcsRemain],
+    create_arcs_min_consec_days_off_aux(MinConsecutiveShifts,CounterPlus1,ArcsRemain).
+
+
+
+% Constrain 9
+% HC9: Maximum Number of Weekends
+
+create_arcs_per_shift_and_off(Source,Sink,Arcs):-
+    get_shifts_list(ShiftsList),
+    findall(arc(Source,ShiftID,Sink),member(ShiftID,[0|ShiftsList]), Arcs).
+
+set_max_weekends(Schedule):-
+    findall([NurseID, MaxWeekends], nurse(NurseID,_,_, _,_,_,_,MaxWeekends), Nurses),
+    maplist(set_max_weekends_schedule(Schedule),Nurses).
+
+set_max_weekends_schedule(Schedule, [NurseID, MaxWeekends]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    set_max_weekends_nurse(NurseSchedule,MaxWeekends).
+
+create_arcs_with_counter(_,_,[],_,[]).
+
+create_arcs_with_counter(Source,Sink,[ShiftID|ShiftsList],Counter,[Arc|Arcs]):-
+    Arc = arc(Source,ShiftID,Sink,[Counter+1]),
+    create_arcs_with_counter2(Source,Sink,ShiftsList,Counter,Arcs).
+
+/*
+create_arcs_with_counter(Source,Sink,ShiftsList,Counter,Arcs):-
+    findall(arc(Source,ShiftID,Sink,[Counter+1]),member(ShiftID,ShiftsList), Arcs).
+*/
+flatten(List, FlatList) :-
+    flatten(List, [], FlatList0),
+    !,
+    FlatList = FlatList0.
+
+flatten(Var, Tl, [Var|Tl]) :-
+    var(Var),
+    !.
+flatten([], Tl, Tl) :- !.
+flatten([Hd|Tl], Tail, List) :-
+    !,
+    flatten(Hd, FlatHeadTail, List),
+    flatten(Tl, Tail, FlatHeadTail).
+flatten(NonList, Tl, [NonList|Tl]).
+
+set_max_weekends_nurse(NurseSchedule, MaxWeekends):-
+    SourcesSinks = [source(suO),sink(suO),sink(suW)],
+    create_arcs_per_shift_and_off(suO,m,Arcs1),
+    create_arcs_per_shift_and_off(suW,m,Arcs2),
+    create_arcs_per_shift_and_off(m,tu,Arcs3),
+    create_arcs_per_shift_and_off(tu,w,Arcs4),
+    create_arcs_per_shift_and_off(w,th,Arcs5),
+    create_arcs_per_shift_and_off(th,f,Arcs6),
+    create_arcs_per_shift(f,saW,Arcs7),
+    Arcs8And9 = [arc(f,0,saO), arc(saO,0,suO)],
+
+    get_shifts_list(ShiftsList),
+    create_arcs_with_counter(saO,suW,ShiftsList,Counter,Arcs10), 
+    create_arcs_with_counter(saW,suW,[0|ShiftsList],Counter,Arcs11),
+
+    flatten([Arcs1,Arcs2,Arcs3,Arcs4,Arcs5,Arcs6,Arcs7,Arcs8And9,Arcs10,Arcs11],Arcs),
+
+
+
+    %write(SourcesSinks),nl,
+    %write(Arcs),nl,
+    %trace,
+    automaton(NurseSchedule,_,NurseSchedule,SourcesSinks,Arcs,[Counter],[0],[F]),
+    %write(F),
+    %automaton(NurseSchedule,SourcesSinks,Arcs),
+    %nl, write('not here ??'), nl,
+    %nl,
+    F #=< MaxWeekends.
+
 
 
 /*

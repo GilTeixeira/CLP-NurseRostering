@@ -69,10 +69,12 @@ solver(Schedule):-
 	set_min_consec_shifts(Schedule),
 	
 	% Constrain 8
-	% HC8 : Minimum consecutive days off 
+	% HC8 : Minimum consecutive days off
+	set_min_consec_days_off(Schedule),
 	
 	% Constrain 9
 	% HC9 : Maximum number of weekends 
+	set_max_weekends(Schedule),
 	
 	% Constrain 10
 	% HC10 : Requested days off
@@ -83,8 +85,8 @@ solver(Schedule):-
 	% SC1 : Shift on requests 
 	% SC2 : Shift off requests 
 	% SC3 : Coverage 
-
-
+	write('gets here'),
+	!,
 	%% Search
 	labeling([],Vars),
 	nl,
