@@ -102,7 +102,10 @@ set_min_consec_shifts_schedule(Schedule, [NurseID, MinConsecutiveShifts]):-
 set_min_consec_shifts_nurse(NurseSchedule, MinConsecutiveShifts):-
     create_arcs_min_consec(MinConsecutiveShifts,Arcs),
     create_sources_sinks_min_consec(MinConsecutiveShifts,SourcesSinks),
-    %!,
+
+    write(SourcesSinks),nl,
+    write(Arcs),nl,
+    !,
     automaton(NurseSchedule,SourcesSinks,Arcs).
 
 create_sources_sinks_min_consec(MinConsecutiveShifts,SourcesSinks):-
@@ -120,9 +123,11 @@ create_arcs_min_consec(MinConsecutiveShifts,Arcs):-
 create_arcs_min_consec_aux(MinConsecutiveShifts,MinConsecutiveShifts,Arcs):-
     create_arcs_per_shift(w0,w0,ArcsW0), 
     create_arcs_per_shift(nw,1,ArcsNW),
+    create_arcs_per_shift(MinConsecutiveShifts,MinConsecutiveShifts,ArcsFinal),
     InitialArcs = [arc(w0,0,nw),arc(nw,0,nw),arc(MinConsecutiveShifts,0,nw)],
     append(ArcsW0,ArcsNW,ArcsAux),
-    append(InitialArcs,ArcsAux,Arcs).
+    append(ArcsFinal,ArcsAux,ArcsAux2),
+    append(InitialArcs,ArcsAux2,Arcs).
     %printBoardLine(Arcs).
 
 
@@ -165,7 +170,7 @@ create_arcs_min_consec_days_off_aux(MinConsecutiveDaysOff,MinConsecutiveDaysOff,
     create_arcs_per_shift(w0,w0,ArcsW0), 
     create_arcs_per_shift(nw,w0,ArcsNWToW0),
     create_arcs_per_shift(MinConsecutiveDaysOff,w0,ArcsLastDayToNW),
-    InitialArcs = [arc(nw,0,nw),arc(w0,0,1)],
+    InitialArcs = [arc(nw,0,nw),arc(w0,0,1),arc(MinConsecutiveDaysOff,0,MinConsecutiveDaysOff)],
     append(ArcsW0,ArcsNWToW0,ArcsAux),
     append(ArcsLastDayToNW,ArcsAux,ArcsAux2),
     append(InitialArcs,ArcsAux2,Arcs).
@@ -200,7 +205,7 @@ create_arcs_with_counter(_,_,[],_,[]).
 
 create_arcs_with_counter(Source,Sink,[ShiftID|ShiftsList],Counter,[Arc|Arcs]):-
     Arc = arc(Source,ShiftID,Sink,[Counter+1]),
-    create_arcs_with_counter2(Source,Sink,ShiftsList,Counter,Arcs).
+    create_arcs_with_counter(Source,Sink,ShiftsList,Counter,Arcs).
 
 /*
 create_arcs_with_counter(Source,Sink,ShiftsList,Counter,Arcs):-
@@ -250,6 +255,36 @@ set_max_weekends_nurse(NurseSchedule, MaxWeekends):-
     %nl,
     F #=< MaxWeekends.
 
+
+% Constrain 10
+% HC10 : Requested days off
+
+set_nurses_days_off(Schedule):-
+    findall([NurseID, DaysOff], days_off(NurseID,DaysOff), Nurses),
+    maplist(set_nurses_days_off_schedule(Schedule),Nurses).
+
+set_nurses_days_off_schedule(Schedule, [NurseID, DaysOff]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    set_nurses_days_off_nurse(NurseSchedule,DaysOff).
+
+
+set_nurses_days_off_nurse(NurseSchedule,DaysOff):-
+    maplist(set_nurses_day_off_nurse(NurseSchedule),DaysOff).
+
+set_nurses_day_off_nurse(NurseSchedule,DayOff):-
+    %write(NurseSchedule),nl,
+    %write(DayOff),nl,nl,
+    DayOffnth1 is DayOff + 1, % DayOff starts at 0
+    element(DayOffnth1,NurseSchedule,0).
+
+%set_nurses_days_off(Schedule):-
+    %forall(days_off(NurseID,DaysOff), set_nurse_days_off(NurseID,DaysOff,Schedule)).
+
+%set_nurse_days_off(NurseID, [], Schedule).
+%set_nurse_days_off(NurseID, [DayOff|DaysOff], Schedule):-
+
+    % TODO
+%    set_nurse_days_off(NurseID, DaysOff, Schedule).
 
 
 /*

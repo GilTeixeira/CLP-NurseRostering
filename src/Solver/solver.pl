@@ -11,6 +11,23 @@
 :- include('queries.pl').
 
 %nurse_problem_solver(Schedule) 
+
+sol2([
+[2,2,2,0,0,2,2,2,2,2,0,0,0,0],
+[2,0,0,1,1,0,0,1,1,1,0,0,1,1],
+[2,0,0,1,1,1,1,0,0,1,1,1,0,0],
+[1,1,1,1,1,0,0,0,1,1,1,0,0,1],
+[2,0,0,2,2,2,2,2,0,0,2,2,0,0],
+[0,0,2,2,2,2,2,0,0,2,2,2,0,0],
+[1,1,1,1,1,0,0,0,0,0,1,1,1,1],
+[1,1,2,0,0,1,1,1,2,2,0,0,0,0],
+[0,2,2,2,2,0,0,1,1,2,0,0,1,2],
+[1,2,2,2,0,0,0,0,0,1,1,2,2,2],
+[0,0,2,0,0,0,0,0,2,0,0,0,2,2],
+[0,0,0,0,0,0,0,0,2,0,2,0,2,2],
+[0,1,0,1,0,2,2,0,0,0,0,0,0,0],
+[0,0,1,0,0,0,0,0,1,0,0,0,1,1]]).
+
 solver(Schedule):-
 	
 
@@ -64,10 +81,12 @@ solver(Schedule):-
 	% HC6 : Maximum consecutive shifts 
 	set_max_consec_shifts(Schedule),
 	
+	% here
 	% Constrain 7
 	% HC7 : Minimum consecutive shifts 
 	set_min_consec_shifts(Schedule),
 	
+	% and here
 	% Constrain 8
 	% HC8 : Minimum consecutive days off
 	set_min_consec_days_off(Schedule),
@@ -78,7 +97,7 @@ solver(Schedule):-
 	
 	% Constrain 10
 	% HC10 : Requested days off
-	% set_nurses_days_off(Schedule),
+	set_nurses_days_off(Schedule),
 
 
 	% Soft Constrains
