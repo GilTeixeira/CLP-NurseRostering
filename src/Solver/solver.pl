@@ -2,6 +2,7 @@
 :- use_module(library(lists)).
 :- use_module(library(random)).
 :- use_module(library(aggregate)).
+:- use_module(library(between)).
 
 :- include('statistics.pl').
 :- include('data.pl').
@@ -65,6 +66,7 @@ solver(Schedule):-
 	
 	% Constrain 7
 	% HC7 : Minimum consecutive shifts 
+	set_min_consec_shifts(Schedule),
 	
 	% Constrain 8
 	% HC8 : Minimum consecutive days off 

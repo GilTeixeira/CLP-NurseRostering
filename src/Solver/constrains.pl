@@ -90,6 +90,51 @@ set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
 
 % Constrain 7
 % HC6: Minimum consecutive shifts
+
+set_min_consec_shifts(Schedule):-
+    findall([NurseID, MinConsecutiveShifts], nurse(NurseID,_,_, _,_,MinConsecutiveShifts,_,_), Nurses),
+    maplist(set_min_consec_shifts_schedule(Schedule),Nurses).
+
+set_min_consec_shifts_schedule(Schedule, [NurseID, MinConsecutiveShifts]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    set_min_consec_shifts_nurse(NurseSchedule,MinConsecutiveShifts).
+
+set_min_consec_shifts_nurse(NurseSchedule, MinConsecutiveShifts):-
+    create_arcs_min_consec(MinConsecutiveShifts,Arcs),
+    create_sources_sinks_min_consec(MinConsecutiveShifts,SourcesSinks),
+    %!,
+    automaton(NurseSchedule,SourcesSinks,Arcs).
+
+create_sources_sinks_min_consec(MinConsecutiveShifts,SourcesSinks):-
+    SourcesSinksAux = [source(w0),sink(w0),sink(nw)],
+    findall(sink(ShiftDay),between(1,MinConsecutiveShifts,ShiftDay), Sinks),
+    append(SourcesSinksAux,Sinks,SourcesSinks).
+
+create_arcs_per_shift(Source,Sink,Arcs):-
+    get_shifts_list(ShiftsList),
+    findall(arc(Source,ShiftID,Sink),member(ShiftID,ShiftsList), Arcs).
+
+create_arcs_min_consec(MinConsecutiveShifts,Arcs):-
+    create_arcs_min_consec_aux(MinConsecutiveShifts,1,Arcs).
+
+create_arcs_min_consec_aux(MinConsecutiveShifts,MinConsecutiveShifts,Arcs):-
+    create_arcs_per_shift(w0,w0,ArcsW0), 
+    create_arcs_per_shift(nw,1,ArcsNW),
+    InitialArcs = [arc(w0,0,nw),arc(nw,0,nw),arc(MinConsecutiveShifts,0,nw)],
+    append(ArcsW0,ArcsNW,ArcsAux),
+    append(InitialArcs,ArcsAux,Arcs).
+    %printBoardLine(Arcs).
+
+
+create_arcs_min_consec_aux(MinConsecutiveShifts,Counter,Arcs):-
+    CounterPlus1 is Counter+1,
+    create_arcs_per_shift(Counter,CounterPlus1,ArcsW),
+    append(ArcsW,ArcsRemain,Arcs),
+    create_arcs_min_consec_aux(MinConsecutiveShifts,CounterPlus1,ArcsRemain).
+
+
+
+
 /*
 automaton is the answer
 set_min_consec_shifts(Schedule):-
