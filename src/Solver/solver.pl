@@ -61,13 +61,16 @@ solver(Schedule):-
 	% HC1 : Maximum one shift per day
 	% Already Defined in the domain 
 	
+	write(1),nl,
 	% Constrain 2
 	% HC2 : Shift rotations
 	set_shift_rotations(Schedule),
+	write(2),nl,
 	
 	% Constrain 3
 	% HC3: Maximum number of shifts
 	set_max_shifts(Schedule),
+	write(3),nl,
 	 
 	
 	% Constrain 4
@@ -80,24 +83,38 @@ solver(Schedule):-
 	% Constrain 6
 	% HC6 : Maximum consecutive shifts 
 	set_max_consec_shifts(Schedule),
+	write(6),nl,
 	
-	% here
 	% Constrain 7
 	% HC7 : Minimum consecutive shifts 
 	set_min_consec_shifts(Schedule),
+	write(7),nl,
 	
-	% and here
 	% Constrain 8
 	% HC8 : Minimum consecutive days off
 	set_min_consec_days_off(Schedule),
+	write(8),nl,
 	
 	% Constrain 9
 	% HC9 : Maximum number of weekends 
 	set_max_weekends(Schedule),
+	write(9),nl,
 	
 	% Constrain 10
 	% HC10 : Requested days off
 	set_nurses_days_off(Schedule),
+	write(10),nl,
+
+
+	% SC 1	
+	get_nurses_shift_on_penalty(Schedule, PenaltyShiftOn),
+	write(PenaltyShiftOn),nl,
+
+	% SC 1	
+	get_nurses_shift_off_penalty(Schedule, PenaltyShiftOff),
+	write(PenaltyShiftOff),nl,
+
+	sum([PenaltyShiftOn,PenaltyShiftOff],#=,Penalties),
 
 
 	% Soft Constrains
@@ -107,7 +124,10 @@ solver(Schedule):-
 	write('gets here'),
 	!,
 	%% Search
-	labeling([],Vars),
+	labeling([minimize(Penalties),time_out(60000,F)],Vars),
+
+	write('Penalty '), write(Penalties),nl,
+	write('Flag '), write(F),
 	nl,
 	nl,
 	displayMat(Schedule),

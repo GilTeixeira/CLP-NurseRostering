@@ -103,9 +103,9 @@ set_min_consec_shifts_nurse(NurseSchedule, MinConsecutiveShifts):-
     create_arcs_min_consec(MinConsecutiveShifts,Arcs),
     create_sources_sinks_min_consec(MinConsecutiveShifts,SourcesSinks),
 
-    write(SourcesSinks),nl,
-    write(Arcs),nl,
-    !,
+    %write(SourcesSinks),nl,
+    %write(Arcs),nl,
+    %!,
     automaton(NurseSchedule,SourcesSinks,Arcs).
 
 create_sources_sinks_min_consec(MinConsecutiveShifts,SourcesSinks):-
@@ -276,6 +276,74 @@ set_nurses_day_off_nurse(NurseSchedule,DayOff):-
     %write(DayOff),nl,nl,
     DayOffnth1 is DayOff + 1, % DayOff starts at 0
     element(DayOffnth1,NurseSchedule,0).
+
+
+
+% Soft Constrain 1
+% SC1 : Shift on requests
+
+%SECTION_SHIFT_ON_REQUESTS
+%# EmployeeID, Day, ShiftID, Weight
+%shift_on_request(1,5,2,1).
+
+get_nurses_shift_on_penalty(Schedule, PenaltyShiftOn):-
+    findall([NurseID,Day,ShiftID,Weight], shift_on_request(NurseID,Day,ShiftID,Weight), ShiftOnReqs),
+    get_shift_on_penalty(Schedule,ShiftOnReqs,PenaltiesShiftOn),
+    write('PenaltiesShiftOn'),write(PenaltiesShiftOn),nl,
+    sum(PenaltiesShiftOn,#=,PenaltyShiftOn).
+
+
+get_shift_on_penalty(_,[],[]).
+get_shift_on_penalty(Schedule,[[NurseID,Day,ShiftID,Weight]|ShiftOnReqs],[PenaltyShiftOn|PenaltiesShiftOn]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    DayShift is Day + 1, % Day starts at 0
+    element(DayShift,NurseSchedule,ShiftAssigned),
+    (ShiftAssigned #\= ShiftID) #=> PenaltyShiftOn #= Weight,
+    (ShiftAssigned #= ShiftID) #=> PenaltyShiftOn #= 0,    
+    get_shift_on_penalty(Schedule,ShiftOnReqs,PenaltiesShiftOn).
+
+
+% Soft Constrain 2
+% SC2 : Shift off requests
+
+
+%SECTION_SHIFT_ON_REQUESTS
+%# EmployeeID, Day, ShiftID, Weight
+%shift_off_request(7,3,1,2).
+
+get_nurses_shift_off_penalty(Schedule, PenaltyShiftOff):-
+    findall([NurseID,Day,ShiftID,Weight], shift_off_request(NurseID,Day,ShiftID,Weight), ShiftOffReqs),
+    %nl, write('len'),length(ShiftOffReqs,Len), write(Len),
+    get_shift_off_penalty(Schedule,ShiftOffReqs,PenaltiesShiftOff),
+    write('PenaltiesShiftOff'),write(PenaltiesShiftOff),nl,
+    sum(PenaltiesShiftOff,#=,PenaltyShiftOff).
+
+
+get_shift_off_penalty(_,[],[]).
+get_shift_off_penalty(Schedule,[[NurseID,Day,ShiftID,Weight]|ShiftOffReqs],[PenaltyShiftOff|PenaltiesShiftOff]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    DayShift is Day + 1, % Day starts at 0
+    element(DayShift,NurseSchedule,ShiftAssigned),
+    
+    (ShiftAssigned #= ShiftID) #=> PenaltyShiftOff #= Weight,
+    (ShiftAssigned #\= ShiftID) #=> PenaltyShiftOff #= 0,    
+    %write('next call - '),nl,write(Schedule),nl,write(ShiftOffReqs),nl,write(PenaltiesShiftOff),nl,
+    get_shift_off_penalty(Schedule,ShiftOffReqs,PenaltiesShiftOff).
+
+/*
+    maplist(get_nurses_shift_on_requests_schedule(Schedule),Nurses).
+
+get_nurses_shift_on_requests_schedule(Schedule, [NurseID,Day,ShiftID,Weight]]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    set_nurses_days_off_nurse(NurseSchedule,DaysOff).
+*/
+
+
+
+
+
+
+
 
 %set_nurses_days_off(Schedule):-
     %forall(days_off(NurseID,DaysOff), set_nurse_days_off(NurseID,DaysOff,Schedule)).
