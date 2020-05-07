@@ -299,8 +299,19 @@ get_shift_on_penalty(Schedule,[[NurseID,Day,ShiftID,Weight]|ShiftOnReqs],[Penalt
     DayShift is Day + 1, % Day starts at 0
     element(DayShift,NurseSchedule,ShiftAssigned),
     (ShiftAssigned #\= ShiftID) #=> PenaltyShiftOn #= Weight,
-    (ShiftAssigned #= ShiftID) #=> PenaltyShiftOn #= 0,    
+    (ShiftAssigned #= ShiftID) #=> PenaltyShiftOn #= 0,
+    %logshifton(NurseID,Day,ShiftAssigned,ShiftID,PenaltyShiftOn),    
     get_shift_on_penalty(Schedule,ShiftOnReqs,PenaltiesShiftOn).
+
+logshifton(_,_,_,_,0).
+logshifton(NurseID,Day,ShiftAssigned,ShiftID,PenaltyShiftOn):-
+    write('logshift on'),nl,
+    write('NurseID '), write(NurseID),nl,
+    write('Day '), write(Day),nl,
+    write('ShiftAssigned '), write(ShiftAssigned),nl,
+    write('ShiftID '), write(ShiftID),nl,
+    write('PenaltyShiftOn '), write(PenaltyShiftOn),nl,
+    nl,nl.
 
 
 % Soft Constrain 2
@@ -327,6 +338,7 @@ get_shift_off_penalty(Schedule,[[NurseID,Day,ShiftID,Weight]|ShiftOffReqs],[Pena
     
     (ShiftAssigned #= ShiftID) #=> PenaltyShiftOff #= Weight,
     (ShiftAssigned #\= ShiftID) #=> PenaltyShiftOff #= 0,    
+    %logshifton(NurseID,Day,ShiftAssigned,ShiftID,PenaltyShiftOff), 
     %write('next call - '),nl,write(Schedule),nl,write(ShiftOffReqs),nl,write(PenaltiesShiftOff),nl,
     get_shift_off_penalty(Schedule,ShiftOffReqs,PenaltiesShiftOff).
 
@@ -366,6 +378,50 @@ get_cover_penalty_day(ScheduleDay, Day, PenaltyDayCover):-
     findall([ShiftID,Requirement,WeightUnder,WeightOver], cover(Day,ShiftID,Requirement,WeightUnder,WeightOver), Covers),
     length(Covers, NShifts),
     length(ShiftsCounter, NShifts),
+    create_global_cardinal_cover(Covers,ShiftsCounter,Vals),
+    global_cardinality(ScheduleDay,[0-_|Vals]),
+    %nl,nl,nl,write('day '),write(Day),
+    get_penalty_day_cover(Covers, Vals, PenaltiesCover),
+
+    sum(PenaltiesCover,#=,PenaltyDayCover).
+    %,
+    %write(Vals),nl,nl.
+
+
+create_global_cardinal_cover([],[],[]).
+create_global_cardinal_cover([[ShiftID|_]|Covers],[ShiftCounter|ShiftsCounter],[Val|Vals]):-
+    Val = ShiftID-ShiftCounter,
+    create_global_cardinal_cover(Covers,ShiftsCounter,Vals).
+
+
+get_penalty_day_cover([], [], []).
+get_penalty_day_cover([[ShiftID,Requirement,WeightUnder,WeightOver]|Covers], [ShiftID-ShiftCounter|Vals], [PenaltyCover|PenaltiesCover]):-
+    %write('sc '), write(ShiftCounter), nl,
+    %write('rq '), write(Requirement), nl,
+    (ShiftCounter #> Requirement) #=> (Dif #= ShiftCounter - Requirement #/\ PenaltyCover #= WeightOver * Dif),
+    (ShiftCounter #< Requirement) #=> (Dif #= Requirement - ShiftCounter #/\ PenaltyCover #= WeightUnder * Dif), 
+    (ShiftCounter #= Requirement) #=> PenaltyCover #= 0,
+    %logshiftcover(ShiftID,Requirement,PenaltyCover),   
+    %write('pc '), write(PenaltyCover), nl,nl,
+    get_penalty_day_cover(Covers, Vals, PenaltiesCover).
+
+
+logshiftcover(_,_,0).
+logshiftcover(ShiftID,Requirement,PenaltyCover):-
+    write('logshift on'),nl,
+    write('ShiftID '), write(ShiftID),nl,
+    write('Requirement '), write(Requirement),nl,
+    write('PenaltyCover '), write(PenaltyCover),nl,
+    nl,nl.
+
+
+%%%%%%%%%%%%
+
+/*
+get_cover_penalty_day(ScheduleDay, Day, PenaltyDayCover):-
+    findall([ShiftID,Requirement,WeightUnder,WeightOver], cover(Day,ShiftID,Requirement,WeightUnder,WeightOver), Covers),
+    length(Covers, NShifts),
+    length(ShiftsCounter, NShifts),
     create_global_cardinal_cover(Covers,ShiftsCounter,Vals,PenaltiesCover),
     sum(PenaltiesCover,#=,PenaltyDayCover),
     global_cardinality(ScheduleDay,[0-_|Vals]),
@@ -381,7 +437,7 @@ create_global_cardinal_cover([[ShiftID,Requirement,WeightUnder,WeightOver]|Cover
     create_global_cardinal_cover(Covers,ShiftsCounter,Vals,PenaltiesCover).
 
 
-
+*/
 /*
 
 create_global_cardinal_vals([],[],[]).
