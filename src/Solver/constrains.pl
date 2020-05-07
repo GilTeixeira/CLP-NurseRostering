@@ -289,7 +289,7 @@ set_nurses_day_off_nurse(NurseSchedule,DayOff):-
 get_nurses_shift_on_penalty(Schedule, PenaltyShiftOn):-
     findall([NurseID,Day,ShiftID,Weight], shift_on_request(NurseID,Day,ShiftID,Weight), ShiftOnReqs),
     get_shift_on_penalty(Schedule,ShiftOnReqs,PenaltiesShiftOn),
-    write('PenaltiesShiftOn'),write(PenaltiesShiftOn),nl,
+    %write('PenaltiesShiftOn'),write(PenaltiesShiftOn),nl,
     sum(PenaltiesShiftOn,#=,PenaltyShiftOn).
 
 
@@ -315,7 +315,7 @@ get_nurses_shift_off_penalty(Schedule, PenaltyShiftOff):-
     findall([NurseID,Day,ShiftID,Weight], shift_off_request(NurseID,Day,ShiftID,Weight), ShiftOffReqs),
     %nl, write('len'),length(ShiftOffReqs,Len), write(Len),
     get_shift_off_penalty(Schedule,ShiftOffReqs,PenaltiesShiftOff),
-    write('PenaltiesShiftOff'),write(PenaltiesShiftOff),nl,
+    %write('PenaltiesShiftOff'),write(PenaltiesShiftOff),nl,
     sum(PenaltiesShiftOff,#=,PenaltyShiftOff).
 
 
@@ -341,8 +341,55 @@ get_nurses_shift_on_requests_schedule(Schedule, [NurseID,Day,ShiftID,Weight]]):-
 
 
 
+% Soft Constrain 2
+% SC3 : Coverage 
 
 
+%SECTION_COVER
+%# Day, ShiftID, Requirement, Weight for under, Weight for over
+%cover(0,1,4,100,1).
+
+
+get_cover_penalty(Schedule, PenaltyCover):-
+    transpose(Schedule,ScheduleTranspose),
+    get_cover_penalty_all_days(ScheduleTranspose, 0, PenaltiesCover),
+    sum(PenaltiesCover,#=,PenaltyCover).
+
+get_cover_penalty_all_days([], _, []).
+get_cover_penalty_all_days([ScheduleDay|ScheduleRemain], Day, [PenaltyCoverDay|PenaltiesCover]):-
+    get_cover_penalty_day(ScheduleDay, Day, PenaltyCoverDay),
+    NextDay is Day + 1,
+    get_cover_penalty_all_days(ScheduleRemain, NextDay, PenaltiesCover).
+
+
+get_cover_penalty_day(ScheduleDay, Day, PenaltyDayCover):-
+    findall([ShiftID,Requirement,WeightUnder,WeightOver], cover(Day,ShiftID,Requirement,WeightUnder,WeightOver), Covers),
+    length(Covers, NShifts),
+    length(ShiftsCounter, NShifts),
+    create_global_cardinal_cover(Covers,ShiftsCounter,Vals,PenaltiesCover),
+    sum(PenaltiesCover,#=,PenaltyDayCover),
+    global_cardinality(ScheduleDay,[0-_|Vals]),
+    write(Vals),nl,nl.
+
+
+create_global_cardinal_cover([],[],[],[]).
+create_global_cardinal_cover([[ShiftID,Requirement,WeightUnder,WeightOver]|Covers],[ShiftCounter|ShiftsCounter],[Val|Vals],[PenaltyCover|PenaltiesCover]):-
+    Val = ShiftID-ShiftCounter,
+    (ShiftCounter #> Requirement) #=> PenaltyCover #= WeightOver,
+    (ShiftCounter #< Requirement) #=> PenaltyCover #= WeightUnder,
+    (ShiftCounter #= 0) #=> PenaltyCover #= 0,    
+    create_global_cardinal_cover(Covers,ShiftsCounter,Vals,PenaltiesCover).
+
+
+
+/*
+
+create_global_cardinal_vals([],[],[]).
+create_global_cardinal_vals([(ShiftID, MaxShift)|MaxShifts],[ShiftCounter|ShiftsCounter],[Val|Vals]):-
+    Val = ShiftID-ShiftCounter,
+    ShiftCounter #=< MaxShift,
+    create_global_cardinal_vals(MaxShifts,ShiftsCounter,Vals).
+*/
 
 
 %set_nurses_days_off(Schedule):-

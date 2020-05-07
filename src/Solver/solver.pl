@@ -108,13 +108,18 @@ solver(Schedule):-
 
 	% SC 1	
 	get_nurses_shift_on_penalty(Schedule, PenaltyShiftOn),
-	write(PenaltyShiftOn),nl,
+	write('cover shift on : '), write(PenaltyShiftOn),nl,
 
-	% SC 1	
+	% SC 2	
 	get_nurses_shift_off_penalty(Schedule, PenaltyShiftOff),
-	write(PenaltyShiftOff),nl,
+	write('cover penalty off: '), write(PenaltyShiftOff),nl,
 
-	sum([PenaltyShiftOn,PenaltyShiftOff],#=,Penalties),
+	% SC 3
+	get_cover_penalty(Schedule, PenaltyCover),
+	write('cover penalty : '), write(PenaltyCover),nl,
+
+	sum([PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],#=,Penalties),
+	%sum([PenaltyShiftOn,PenaltyShiftOff],#=,Penalties),
 
 
 	% Soft Constrains
@@ -124,7 +129,10 @@ solver(Schedule):-
 	write('gets here'),
 	!,
 	%% Search
-	labeling([minimize(Penalties),time_out(60000,F)],Vars),
+	TIME_OUT_MIN = 30,
+	%TIME_OUT_MILISECONDS is TIME_OUT_MIN * 60 * 1000,
+	TIME_OUT_MILISECONDS is 1000,
+	labeling([minimize(Penalties),time_out(TIME_OUT_MILISECONDS,F)],Vars),
 
 	write('Penalty '), write(Penalties),nl,
 	write('Flag '), write(F),
