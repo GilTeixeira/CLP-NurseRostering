@@ -10,7 +10,7 @@
 :- include('constrains.pl').
 :- include('queries.pl').
 
-%nurse_problem_solver(Schedule) 
+
 
 sol2([
     [2,2,2,0,0,2,2,2,2,2,0,0,0,0],
@@ -28,6 +28,7 @@ sol2([
 	[0,1,0,1,0,2,2,0,0,0,0,0,0,0],
 	[0,0,1,0,0,0,0,0,1,0,0,0,1,1]]).
 
+%nurse_problem_solver(Schedule) 
 solver(Schedule):-
 	
 
@@ -129,7 +130,7 @@ solver(Schedule):-
 	write('gets here'),
 	!,
 	%% Search
-	TIME_OUT_MIN = 1,
+	TIME_OUT_MIN = 10,
 	TIME_OUT_MILISECONDS is TIME_OUT_MIN * 60 * 1000,
 	%TIME_OUT_MILISECONDS is 1000,
 	labeling([minimize(Penalties),time_out(TIME_OUT_MILISECONDS,F)],Vars),
