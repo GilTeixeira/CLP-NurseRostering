@@ -211,20 +211,7 @@ create_arcs_with_counter(Source,Sink,[ShiftID|ShiftsList],Counter,[Arc|Arcs]):-
 create_arcs_with_counter(Source,Sink,ShiftsList,Counter,Arcs):-
     findall(arc(Source,ShiftID,Sink,[Counter+1]),member(ShiftID,ShiftsList), Arcs).
 */
-flatten(List, FlatList) :-
-    flatten(List, [], FlatList0),
-    !,
-    FlatList = FlatList0.
 
-flatten(Var, Tl, [Var|Tl]) :-
-    var(Var),
-    !.
-flatten([], Tl, Tl) :- !.
-flatten([Hd|Tl], Tail, List) :-
-    !,
-    flatten(Hd, FlatHeadTail, List),
-    flatten(Tl, Tail, FlatHeadTail).
-flatten(NonList, Tl, [NonList|Tl]).
 
 set_max_weekends_nurse(NurseSchedule, MaxWeekends):-
     SourcesSinks = [source(suO),sink(suO),sink(suW)],

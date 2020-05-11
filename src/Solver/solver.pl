@@ -5,11 +5,10 @@
 :- use_module(library(between)).
 
 :- include('statistics.pl').
-:- include('data.pl').
+:- include('settings.pl').
 :- include('matrixUtils.pl').
-:- include('constrains.pl').
 :- include('queries.pl').
-
+:- include('constrains.pl').
 
 
 sol2([
@@ -29,21 +28,16 @@ sol2([
 	[0,0,1,0,0,0,0,0,1,0,0,0,1,1]]).
 
 %nurse_problem_solver(Schedule) 
-solver(Schedule):-
-	
+solver(Schedule):-	
 
 	% Variables
 	number_of_days(NDays),
 	%write('Ndays: '), write(NDays),nl,
 
-	% aggregate_all(ShiftID, shift(ShiftID,_,_), NShifts),
-	%aggregate(count,ShiftID, shift(ShiftID,_,_),NShifts),
-
 	get_number_shifts(NShifts), % TODO: change to assertz
 	%write('NShifts: '), write(ListOfShiftIDs), write(NShifts),nl,
 
 	get_number_nurses(NNurses), % TODO: change to assertz
-	%aggregate(count, nurse(_,_,_,_,_,_,_,_), NNurses),	
 	%write('NNurses: '),write(ListOfNurseIDs), write(NNurses),nl,
 
 	gen_matrix(NNurses, NDays, Schedule),
@@ -56,141 +50,111 @@ solver(Schedule):-
 	%length(Vars,NVars),
 	%write(NVars),
 
-	% Constrains
+	apply_hard_constrains(Schedule),
+	apply_soft_constrains(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]),
 
+	search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]).
+
+
+
+apply_hard_constrains(Schedule):-
+	nl,nl, write('Applying Hard Constrains...'), nl,
 	% Constrain 1
 	% HC1 : Maximum one shift per day
-	% Already Defined in the domain 
+	% Already Defined in the domain
+	write('HC1 Applied.'), nl,
 	
-	write(1),nl,
 	% Constrain 2
 	% HC2 : Shift rotations
 	set_shift_rotations(Schedule),
-	write(2),nl,
+	write('HC2 Applied.'), nl,
 	
 	% Constrain 3
 	% HC3: Maximum number of shifts
 	set_max_shifts(Schedule),
-	write(3),nl,
+	write('HC3 Applied.'), nl,
 	 
 	
 	% Constrain 4
-	% HC4 : Maximum total minutes 
+	% HC4 : Maximum total minutes
+	write('HC4 Applied.'), nl, 
 	
 	% Constrain 5
 	% HC5 : Minimum total minutes 
 	%set_min_minutes(Schedule),
+	write('HC5 Applied.'), nl, 
 	
 	% Constrain 6
 	% HC6 : Maximum consecutive shifts 
 	set_max_consec_shifts(Schedule),
-	write(6),nl,
+	write('HC6 Applied.'), nl, 
 	
 	% Constrain 7
 	% HC7 : Minimum consecutive shifts 
 	set_min_consec_shifts(Schedule),
-	write(7),nl,
+	write('HC7 Applied.'), nl, 
 	
 	% Constrain 8
 	% HC8 : Minimum consecutive days off
 	set_min_consec_days_off(Schedule),
-	write(8),nl,
+	write('HC8 Applied.'), nl, 
 	
 	% Constrain 9
 	% HC9 : Maximum number of weekends 
 	set_max_weekends(Schedule),
-	write(9),nl,
+	write('HC9 Applied.'), nl, 
 	
 	% Constrain 10
 	% HC10 : Requested days off
 	set_nurses_days_off(Schedule),
-	write(10),nl,
+	write('HC10 Applied.'), nl,
 
+	write('Applied all Hard Constrains.'), nl.
+
+
+apply_soft_constrains(Schedule,Penalties,PenaltiesList):-
+	nl,nl, write('Applying Soft Constrains...'), nl,
 
 	% SC 1	
 	get_nurses_shift_on_penalty(Schedule, PenaltyShiftOn),
-	write('cover shift on : '), write(PenaltyShiftOn),nl,
+	write('SC1 Applied.'), nl,
 
 	% SC 2	
 	get_nurses_shift_off_penalty(Schedule, PenaltyShiftOff),
-	write('cover penalty off: '), write(PenaltyShiftOff),nl,
+	write('SC2 Applied.'), nl,
 
 	% SC 3
 	get_cover_penalty(Schedule, PenaltyCover),
-	write('cover penalty : '), write(PenaltyCover),nl,
+	write('SC3 Applied.'), nl,
 
-	sum([PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],#=,Penalties),
-	%sum([PenaltyShiftOn,PenaltyShiftOff],#=,Penalties),
+	PenaltiesList = [PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],
+	sum(PenaltiesList,#=,Penalties),
+
+	write('Applied all Soft Constrains.'), nl,
+	write('Applied all Constrains.'), nl.
 
 
-	% Soft Constrains
-	% SC1 : Shift on requests 
-	% SC2 : Shift off requests 
-	% SC3 : Coverage 
-	write('gets here'),
+
+search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]):-
+	write('Beggining Search...'), nl,
+	
 	!,
 	%% Search
-	TIME_OUT_MIN = 10,
-	TIME_OUT_MILISECONDS is TIME_OUT_MIN * 60 * 1000,
+	TIME_OUT_MIN = 1,
+	TIME_OUT_MILISECONDS is TIME_OUT_MIN * 60 * 100,
 	%TIME_OUT_MILISECONDS is 1000,
 	labeling([minimize(Penalties),time_out(TIME_OUT_MILISECONDS,F)],Vars),
+	write('Finished Search.'), nl,
 
-	write('Penalty '), write(Penalties),nl,
-	write('Flag '), write(F),
+	write('Penalty Shift On:  '), write(PenaltyShiftOn),nl,
+	write('Penalty Shift Off: '), write(PenaltyShiftOff),nl,
+	write('Penalty Cover:     '), write(PenaltyCover),nl,
+	write('Penalty Total:     '), write(Penalties),nl,
+	write('Flag:             '), write(F),
 	nl,
 	nl,
-	displayMat(Schedule),
-	
+	displayMat(Schedule),	
 	nl.
-
-
-%magicSnailSolver(N, Seq, Initials, LabOptions, Matrix):-
-magicSnailSolver(SpiralList):-
-
-    SpiralList = [A, B, C, D, E],
-    A #> 3,
-    B #> 1,
-    C #> 2,
-    D #= 4,
-    E #< 7,
-    domain(SpiralList,0,4),
-	
-	%generate_matrix(N,Matrix),
-	%transpose(Matrix,TransMatrix),
-	%spiral(Matrix,SpiralList),
-		
-	%%Domain
-	%length(Seq, NVars),
-	%domain(SpiralList,0,NVars),
-	
-	
-	%%Constrains
-	
-	%createListGlobalCardinality(Seq,N,ListGlobalCard),
-	
-	%%Constrain 1
-	%%Each Row must some re-arrangement of all the elements of the given key
-	%setGlobal(Matrix,ListGlobalCard),
-	
-	
-	%%Constrain 2
-	%%Each Column must some re-arrangement of all the elements of the given key
-	%setGlobal(TransMatrix,ListGlobalCard),
-	
-	
-	%%Constrain 3
-	%% Elements already on Matrix
-	%setListMatrix(Matrix,Initials),
-	
-	%%Constrain 4
-	%%While reading the letters from outside towards the dead-end inside the
-	%%grid, the order of the elements is to be same as the key
-	%auto(SpiralList,Seq),
-	
-	
-	%% Search
-	labeling([],SpiralList).
-
 
  main:-
     reset_timer,
