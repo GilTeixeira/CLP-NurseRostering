@@ -53,7 +53,10 @@ solver(Schedule):-
 	apply_hard_constrains(Schedule),
 	apply_soft_constrains(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]),
 
-	search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]).
+	search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]),
+	
+	FileName = 'sol.json',
+	write_results_to_file(Schedule,FileName).
 
 
 
@@ -153,11 +156,29 @@ search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]):-
 	write('Flag:             '), write(F),
 	nl,
 	nl,
-	displayMat(Schedule),	
+	%displayMat(Schedule),	
 	nl.
 
+write_results_to_file(Schedule,FileName):-
+	atom_concat('Temp/',FileName,FilePath),
+	open(FilePath,write,Out),
+	write(Out,'{\n'),
+
+	write(Out,'"schedule":'),
+	write(Out,Schedule),
+	write(Out,',\n'),
+
+	write(Out,'"time":12'),
+
+	write(Out,'\n}'),
+
+    close(Out). 
+
+
+/*
  main:-
     reset_timer,
     magicSnailSolver(SpiralList),
     write(SpiralList),nl,
     print_time.
+*/

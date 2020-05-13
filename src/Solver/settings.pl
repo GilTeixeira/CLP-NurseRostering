@@ -1,1 +1,1 @@
-:- include('data.pl').
+:- include('../../temp/data.pl').

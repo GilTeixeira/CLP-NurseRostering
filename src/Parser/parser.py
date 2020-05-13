@@ -1,4 +1,4 @@
-from hospital import *
+from .hospital import *
 
 class Parser:
     def __init__(self, filepath):

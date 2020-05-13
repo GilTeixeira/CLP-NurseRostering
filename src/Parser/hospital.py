@@ -65,5 +65,10 @@ class Hospital:
             if shift.shiftID == shiftID:
                 return shift.shiftIntID
 
+    def getShiftID(self,shiftIntID):
+        for shift in self.shifts:
+            if shift.shiftIntID == shiftIntID:
+                return shift.shiftID
+
     def getShiftsIntID(self,shiftsID):
         return [self.getShiftIntID(shiftID) for shiftID in shiftsID]
