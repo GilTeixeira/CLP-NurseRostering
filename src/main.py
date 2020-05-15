@@ -12,7 +12,7 @@ from Parser.xmler import XMLer
 
 
 # Variables
-INSTANCE = 24
+INSTANCE = 2
 SEARCH_TIME = 60 # in seconds
 SOL_PATH = 'sol/'
 SOLVER_PATH = 'src/Solver/solver.pl'
