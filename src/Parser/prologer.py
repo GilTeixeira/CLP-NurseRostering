@@ -1,11 +1,24 @@
 
 # TODO comments meaning of facts
 class Prologer:
-    def __init__(self, hospital):
+    def __init__(self, hospital, searchTime):
         self.hospital=hospital
         self.prologCode = ""
+        self.searchTime = searchTime
+
+    def generatePrologFiles(self, dataPath,settingsPath, solFilename):
+        self.createSettingsFile(settingsPath, solFilename)
+        self.generateDataPrologFile(dataPath)
+
+    def createSettingsFile(self, settingsPath, solFilename):
+	    settingsFile = open(settingsPath, 'w', encoding="utf-8")
+	    settingsCode = ':- include(\'data.pl\').\n\n'
+	    settingsCode += 'search_time(%d). %%in seconds \n' % (self.searchTime)
+	    settingsCode += 'sol_filename(\'%s\'). %%in seconds \n' % (solFilename)
+	    settingsFile.write(settingsCode)
+	    settingsFile.close()
     
-    def generatePrologFile(self, output):
+    def generateDataPrologFile(self, output):
         prologFile = open(output, 'w', encoding="utf-8")
         self.convertToProlog()
         prologFile.write(self.prologCode)

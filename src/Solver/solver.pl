@@ -5,7 +5,7 @@
 :- use_module(library(between)).
 
 :- include('statistics.pl').
-:- include('settings.pl').
+:- include('settings/settings.pl').
 :- include('matrixUtils.pl').
 :- include('queries.pl').
 :- include('constrains.pl').
@@ -55,8 +55,8 @@ solver(Schedule):-
 
 	search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]),
 	
-	FileName = 'sol.json',
-	write_results_to_file(Schedule,FileName).
+	%FileName = 'sol.json',
+	write_results_to_file(Schedule).
 
 
 
@@ -143,8 +143,9 @@ search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]):-
 	
 	!,
 	%% Search
-	TIME_OUT_MIN = 1,
-	TIME_OUT_MILISECONDS is TIME_OUT_MIN * 60 * 100,
+	search_time(SearchTimeSeconds),
+	%TIME_OUT_MIN = 1,
+	TIME_OUT_MILISECONDS is SearchTimeSeconds * 1000,
 	%TIME_OUT_MILISECONDS is 1000,
 	labeling([minimize(Penalties),time_out(TIME_OUT_MILISECONDS,F)],Vars),
 	write('Finished Search.'), nl,
@@ -159,8 +160,10 @@ search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]):-
 	%displayMat(Schedule),	
 	nl.
 
-write_results_to_file(Schedule,FileName):-
-	atom_concat('Temp/',FileName,FilePath),
+write_results_to_file(Schedule):-
+
+	sol_filename(SolFileName),
+	atom_concat('sol/',SolFileName,FilePath),
 	open(FilePath,write,Out),
 	write(Out,'{\n'),
 

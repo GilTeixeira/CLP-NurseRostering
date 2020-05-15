@@ -43,7 +43,7 @@ class XMLer:
 
         # create a new XML file with the results
         mydata = ET.tostring(data)
-        myfile = open("temp/items2.xml", "wb")
+        myfile = open(self.filepath, "wb")
       
         myfile.write(mydata)
 
