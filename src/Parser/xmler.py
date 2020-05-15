@@ -12,8 +12,6 @@ class XMLer:
         schedFile = ET.SubElement(data, 'SchedulingPeriodFile')
         schedFile.text = schedProbPath
 
-        #schedFile = ET.SubElement(data, 'SchedulingPeriodFile')
-
         for employeeHospital, employeeSchedule in zip(self.hospital.nurses, self.schedule):
             employee = ET.SubElement(data, 'Employee')
             employee.set('ID',employeeHospital.nurseID)
@@ -28,20 +26,6 @@ class XMLer:
                 dayElem.text = str(day)
                 shiftElem.text = str(shiftID)
 
-
-
-        '''
-        item1 = ET.SubElement(items, 'item')
-        item2 = ET.SubElement(items, 'item')
-        item1.set('name','item1')
-        item2.set('name','item2')
-        item1.text = 'item1abc'
-        item2.text = 'item2abc'
-        '''
-
-
-
-        # create a new XML file with the results
         mydata = ET.tostring(data)
         myfile = open(self.filepath, "wb")
       

@@ -53,10 +53,10 @@ solver(Schedule):-
 	apply_hard_constrains(Schedule),
 	apply_soft_constrains(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]),
 
-	search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]),
+	search(Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag),
 	
 	%FileName = 'sol.json',
-	write_results_to_file(Schedule).
+	write_results_to_file(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag).
 
 
 
@@ -138,7 +138,7 @@ apply_soft_constrains(Schedule,Penalties,PenaltiesList):-
 
 
 
-search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]):-
+search(Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag):-
 	write('Beggining Search...'), nl,
 	
 	!,
@@ -147,31 +147,80 @@ search(Schedule,Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover]):-
 	%TIME_OUT_MIN = 1,
 	TIME_OUT_MILISECONDS is SearchTimeSeconds * 1000,
 	%TIME_OUT_MILISECONDS is 1000,
-	labeling([minimize(Penalties),time_out(TIME_OUT_MILISECONDS,F)],Vars),
+	labeling([minimize(Penalties),time_out(TIME_OUT_MILISECONDS,Flag)],Vars),
 	write('Finished Search.'), nl,
 
 	write('Penalty Shift On:  '), write(PenaltyShiftOn),nl,
 	write('Penalty Shift Off: '), write(PenaltyShiftOff),nl,
 	write('Penalty Cover:     '), write(PenaltyCover),nl,
 	write('Penalty Total:     '), write(Penalties),nl,
-	write('Flag:             '), write(F),
+	write('Flag:             '), write(Flag),
 	nl,
 	nl,
 	%displayMat(Schedule),	
 	nl.
 
-write_results_to_file(Schedule):-
+%last line = false
+write_line_to_file(Out,Element,Value,false):-
+	write(Out,'"'),
+	write(Out,Element),
+	write(Out,'":'),
+	write(Out,Value),
+	write(Out,',\n').
+
+%last line = true
+write_line_to_file(Out,Element,Value,true):-
+	write(Out,'"'),
+	write(Out,Element),
+	write(Out,'":'),
+	write(Out,Value).
+
+% convert value to string
+write_line_to_file_string(Out,Element,Value):-
+	write(Out,'"'),
+	write(Out,Element),
+	write(Out,'":'),
+	write(Out,'"'),
+	write(Out,Value),
+	write(Out,'"'),
+	write(Out,',\n').
+
+atom_to_string(Atom, String):-
+	atom_concat('"',Atom,StringAux),
+	atom_concat(StringAux,'"',String).
+
+
+write_results_to_file(_,_,_,time_out):-
+	sol_filename(SolFileName),
+	atom_concat('sol/',SolFileName,FilePath),
+	open(FilePath,write,Out),
+	write(Out,'{\n'),
+	write_line_to_file(Out,'flag','"time_out"',true),
+
+	write(Out,'\n}'),
+
+    close(Out). 
+
+write_results_to_file(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag):-
 
 	sol_filename(SolFileName),
 	atom_concat('sol/',SolFileName,FilePath),
 	open(FilePath,write,Out),
 	write(Out,'{\n'),
 
-	write(Out,'"schedule":'),
-	write(Out,Schedule),
-	write(Out,',\n'),
 
-	write(Out,'"time":12'),
+	atom_to_string(Flag, FlagString),
+	write_line_to_file(Out,'schedule',Schedule,false),
+	write_line_to_file(Out,'totalPenalty',Penalties,false),
+	write_line_to_file(Out,'penaltyShiftOn',PenaltyShiftOn,false),
+	write_line_to_file(Out,'penaltyShiftOff',PenaltyShiftOff,false),
+	write_line_to_file(Out,'penaltyCover',PenaltyCover,false),
+	write_line_to_file(Out,'flag',FlagString,false),
+
+
+
+	% final
+	write_line_to_file(Out,'time',12,true),
 
 	write(Out,'\n}'),
 

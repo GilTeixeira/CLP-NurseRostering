@@ -5,7 +5,6 @@ class Shift:
         self.shiftIntID = Shift.lastID
         self.duration = duration
         self.shiftsIDCantFollow = shiftsIDCantFollow # Shifts which cannot follow this shift
-
         Shift.lastID += 1
 
 class Request:

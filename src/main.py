@@ -12,8 +12,8 @@ from Parser.xmler import XMLer
 
 
 # Variables
-INSTANCE = 2
-SEARCH_TIME = 60 # in seconds
+INSTANCE = 12
+SEARCH_TIME = 2 # in seconds
 SOL_PATH = 'sol/'
 SOLVER_PATH = 'src/Solver/solver.pl'
 
@@ -67,7 +67,7 @@ def main():
 	createSolDirectory()
 	solPrefix = 'Inst-%d_Time-%d_Timestamp-%f'%(INSTANCE,SEARCH_TIME,time.time())
 	solFilename = solPrefix+ '.json'
-	p2 = Prologer(p1.hospital,SEARCH_TIME)
+	p2 = Prologer(p1.hospital,SEARCH_TIME,datasetPath)
 	p2.generatePrologFiles(GENERATED_PROLOG_DATA_PATH,GENERATED_PROLOG_SETTINGS_PATH, solFilename)
 
 
@@ -84,6 +84,8 @@ def main():
 	solPath = SOL_PATH + solFilename
 	f = open(solPath) 
 	sol = json.load(f)
+
+	if (sol['flag'] == "time_out") : return # only create xml when succeds
 
 	solXMLPath = SOL_PATH+ solPrefix+ '.xml'
 	x1 = XMLer(solXMLPath, p1.hospital, sol['schedule'])
