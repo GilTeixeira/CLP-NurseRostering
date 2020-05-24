@@ -1,3 +1,20 @@
+
+
+
+domain_shifts(Schedule):-
+    findall([NurseID, MaxShifts], nurse(NurseID,MaxShifts,_,_,_,_,_,_), Nurses),
+    maplist(domain_shifts_nurse(Schedule),Nurses).
+
+domain_shifts_nurse(Schedule, [NurseID,MaxShifts]):-
+    nth1(NurseID,Schedule,NurseSchedule),
+    findall(ShiftID,(member((ShiftID,MaxShift),MaxShifts),MaxShift>0), PossibleShifts),
+    list_to_fdset([0|PossibleShifts],PossibleShiftsFDSet),  % every nurse can also take a day off
+    maplist(domain_shifts_nurse_day(PossibleShiftsFDSet),NurseSchedule).
+
+
+domain_shifts_nurse_day(PossibleShiftsFDSet,DaySchedule):-
+    DaySchedule in_set PossibleShiftsFDSet.
+
 % Constrain 1
 % HC1 : Maximum one shift per day
 % Already Defined in the domain 

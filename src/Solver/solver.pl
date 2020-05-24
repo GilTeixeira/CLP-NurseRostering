@@ -46,6 +46,9 @@ solver(Schedule):-
 	% TODO: FOr every nurse get shifts (s)he can do
 	term_variables(Schedule, Vars),
 	domain(Vars,0,NShifts),
+
+
+	domain_shifts(Schedule),
 	
 	%length(Vars,NVars),
 	%write(NVars),
@@ -56,7 +59,9 @@ solver(Schedule):-
 	search(Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag),
 	
 	%FileName = 'sol.json',
-	write_results_to_file(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag).
+	write_results_to_file(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag),
+	displayMat(Schedule),	
+	nl.
 
 
 
@@ -157,7 +162,6 @@ search(Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag):-
 	write('Flag:             '), write(Flag),
 	nl,
 	nl,
-	%displayMat(Schedule),	
 	nl.
 
 %last line = false
