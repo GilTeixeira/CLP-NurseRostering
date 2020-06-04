@@ -152,14 +152,17 @@ search(Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag):-
 	%TIME_OUT_MIN = 1,
 	TIME_OUT_MILISECONDS is SearchTimeSeconds * 1000,
 	%TIME_OUT_MILISECONDS is 1000,
-	labeling([minimize(Penalties),time_out(TIME_OUT_MILISECONDS,Flag)],Vars),
+	labeling_options(Options),
+	AllOptions = [minimize(Penalties),time_out(TIME_OUT_MILISECONDS,Flag)|Options],
+	labeling(AllOptions,Vars),
 	write('Finished Search.'), nl,
 
 	write('Penalty Shift On:  '), write(PenaltyShiftOn),nl,
 	write('Penalty Shift Off: '), write(PenaltyShiftOff),nl,
 	write('Penalty Cover:     '), write(PenaltyCover),nl,
 	write('Penalty Total:     '), write(Penalties),nl,
-	write('Flag:             '), write(Flag),
+	write('Flag:             '), write(Flag), nl,
+	write('Labeling Options:             '), write(Options),
 	nl,
 	nl,
 	nl.
@@ -199,7 +202,11 @@ write_results_to_file(_,_,_,time_out):-
 	atom_concat('sol/',SolFileName,FilePath),
 	open(FilePath,write,Out),
 	write(Out,'{\n'),
-	write_line_to_file(Out,'flag','"time_out"',true),
+	write_line_to_file(Out,'totalPenalty',0,false),
+	write_line_to_file(Out,'flag','"time_out"',false),
+	search_time(SearchTimeSeconds),
+	write_line_to_file(Out,'time',SearchTimeSeconds,true),
+
 
 	write(Out,'\n}'),
 
@@ -222,9 +229,9 @@ write_results_to_file(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,Penalty
 	write_line_to_file(Out,'flag',FlagString,false),
 
 
-
+	search_time(SearchTimeSeconds),
 	% final
-	write_line_to_file(Out,'time',12,true),
+	write_line_to_file(Out,'time',SearchTimeSeconds,true),
 
 	write(Out,'\n}'),
 

@@ -5,6 +5,8 @@ from pathlib import Path
 import json 
 import time
 import argparse
+import csv
+import os
 
 from Parser.parser import Parser
 from Parser.prologer import Prologer
@@ -13,25 +15,29 @@ from Parser.xmler import XMLer
 
 # Variables
 INSTANCE = 1
-SEARCH_TIME = 10 # in seconds
+SEARCH_TIME = 5 # in seconds
 SOL_PATH = 'sol/'
 SOLVER_PATH = 'src/Solver/solver.pl'
 SICSTUS_PATH = 'sicstus'
+OPTIONS = []
+CSV_FILE_PATH = SOL_PATH + 'sols.csv'
 
 # Constants
 INSTANCE_PATH = 'Dataset/Instance%d.txt'
 GENERATED_PROLOG_DATA_PATH = 'src/Solver/settings/data.pl'
 GENERATED_PROLOG_SETTINGS_PATH = 'src/Solver/settings/settings.pl'
 XML_DATASET_RELATIVE_PATH = '../Dataset/Instance%d.ros'
+SETTINGS_PATH = 'src/Solver/settings/settings.pl'
 
 
 ###
 
-def createSettingsFile(solFilename, settingsPath):
+def createSettingsFile(solFilename, settingsPath, options):
 	settingsFile = open(settingsPath, 'w', encoding="utf-8")
 	settingsCode = ':- include(\'data.pl\').\n\n'
 	settingsCode += 'search_time(%d). %%in seconds \n' % (SEARCH_TIME)
-	settingsCode += 'sol_filename(%d). %% solution file \n' % (solFilename)
+	settingsCode += 'sol_filename(\'%s\'). %% solution file \n' % (solFilename)
+	settingsCode += 'labeling_options(%s). %% labeling options \n' % (options)
 	settingsFile.write(settingsCode)
 	settingsFile.close()
 
@@ -53,6 +59,32 @@ def createSolDirectory():
 	tempPath = "./sol"
 	Path(tempPath).mkdir(exist_ok=True)
 
+def writeCSVFile(sol):
+    file_exists = os.path.isfile(CSV_FILE_PATH)
+
+    with open(CSV_FILE_PATH, mode='w') as sols_file:
+        headers = ['intance', 'timeToSearch', 'options', 'flag',
+                   'penalty']
+        writer = csv.DictWriter(sols_file, delimiter=',',
+                                lineterminator='\n',
+                                fieldnames=headers,
+                                quoting=csv.QUOTE_MINIMAL)
+
+        if not file_exists:
+            writer.writeheader()  # file doesn't exist yet, write a header
+
+        # writer.writerow([INSTANCE, SEARCH_TIME, OPTIONS, sol['flag'], sol['totalPenalty']])
+
+        dictSol = {
+            'intance': INSTANCE,
+            'timeToSearch': SEARCH_TIME,
+            'options': OPTIONS,
+            'flag': sol['flag'],
+            'penalty': sol['totalPenalty'],
+            }
+
+        writer.writerow(dictSol)
+
 
 def run():
 
@@ -68,6 +100,7 @@ def run():
 	solFilename = solPrefix+ '.json'
 	p2 = Prologer(p1.hospital,SEARCH_TIME,datasetPath)
 	p2.generatePrologFiles(GENERATED_PROLOG_DATA_PATH,GENERATED_PROLOG_SETTINGS_PATH, solFilename)
+	createSettingsFile(solFilename,SETTINGS_PATH,OPTIONS)
 
 
 	# solver
@@ -84,6 +117,10 @@ def run():
 	f = open(solPath) 
 	sol = json.load(f)
 
+	# write to csv file
+	writeCSVFile(sol)
+
+	print(solPath)
 	if (sol['flag'] == "time_out") : return # only create xml when succeds
 
 	solXMLPath = SOL_PATH+ solPrefix+ '.xml'
@@ -118,12 +155,15 @@ groupTimeArgs.add_argument('-sth','--search-time-hours', metavar="", help='Numbe
 groupInstanceArgs = parser.add_argument_group('Instance search arguments')
 groupInstanceArgs.add_argument('-i','--instance', metavar="", help='Instance to solve', default=1, type=int)
 
+groupSearchOptionsArgs = parser.add_argument_group('Options search arguments')
+groupSearchOptionsArgs.add_argument('-o','--options', metavar="", help='Labeling options', default='[]', type=str)
+
 args = parser.parse_args()
 #print(args.accumulate(args.integers))
 
 
 if args.solve:
-	print(args)
+	#print(args)
 	if args.search_time_seconds:
 		SEARCH_TIME = args.search_time_seconds
 
@@ -133,8 +173,9 @@ if args.solve:
 	if args.search_time_hours:
 		SEARCH_TIME = args.search_time_hours * 60 * 60 	
 	INSTANCE = args.instance
-	print(SEARCH_TIME)
-	print(INSTANCE)
+	OPTIONS = args.options
+	#print(SEARCH_TIME)
+	#$print(INSTANCE)
 	run()
 
 else:
