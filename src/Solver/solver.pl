@@ -157,6 +157,7 @@ search(Vars,Penalties,[PenaltyShiftOn,PenaltyShiftOff,PenaltyCover],Flag):-
 	labeling(AllOptions,Vars),
 	write('Finished Search.'), nl,
 
+
 	write('Penalty Shift On:  '), write(PenaltyShiftOn),nl,
 	write('Penalty Shift Off: '), write(PenaltyShiftOff),nl,
 	write('Penalty Cover:     '), write(PenaltyCover),nl,
@@ -202,6 +203,20 @@ write_results_to_file(_,_,_,time_out):-
 	atom_concat('sol/',SolFileName,FilePath),
 	open(FilePath,write,Out),
 	write(Out,'{\n'),
+
+	fd_statistics(resumptions,Resumptions),
+	fd_statistics(entailments,Entailments),
+	fd_statistics(prunings,Prunings),
+	fd_statistics(backtracks,Backtracks),
+	fd_statistics(constraints,Constraints),
+	write_line_to_file(Out,'resumptions',Resumptions,false),
+	write_line_to_file(Out,'entailments',Entailments,false),
+	write_line_to_file(Out,'prunings',Prunings,false),
+	write_line_to_file(Out,'backtracks',Backtracks,false),
+	write_line_to_file(Out,'constraints',Constraints,false),
+
+
+
 	write_line_to_file(Out,'totalPenalty',0,false),
 	write_line_to_file(Out,'flag','"time_out"',false),
 	search_time(SearchTimeSeconds),
@@ -219,6 +234,12 @@ write_results_to_file(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,Penalty
 	open(FilePath,write,Out),
 	write(Out,'{\n'),
 
+	fd_statistics(resumptions,Resumptions),
+	fd_statistics(entailments,Entailments),
+	fd_statistics(prunings,Prunings),
+	fd_statistics(backtracks,Backtracks),
+	fd_statistics(constraints,Constraints),
+
 
 	atom_to_string(Flag, FlagString),
 	write_line_to_file(Out,'schedule',Schedule,false),
@@ -227,6 +248,13 @@ write_results_to_file(Schedule,Penalties,[PenaltyShiftOn,PenaltyShiftOff,Penalty
 	write_line_to_file(Out,'penaltyShiftOff',PenaltyShiftOff,false),
 	write_line_to_file(Out,'penaltyCover',PenaltyCover,false),
 	write_line_to_file(Out,'flag',FlagString,false),
+
+	write_line_to_file(Out,'resumptions',Resumptions,false),
+	write_line_to_file(Out,'entailments',Entailments,false),
+	write_line_to_file(Out,'prunings',Prunings,false),
+	write_line_to_file(Out,'backtracks',Backtracks,false),
+	write_line_to_file(Out,'constraints',Constraints,false),
+
 
 
 	search_time(SearchTimeSeconds),

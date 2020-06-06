@@ -73,7 +73,7 @@ create_global_cardinal_vals([(ShiftID, MaxShift)|MaxShifts],[ShiftCounter|Shifts
     create_global_cardinal_vals(MaxShifts,ShiftsCounter,Vals).
 
 
-% Constrain 6
+% Constrain 6 
 % HC6: Maximum consecutive shifts
 set_max_consec_shifts(Schedule):-
     findall([NurseID, MaxConsecutiveShifts], nurse(NurseID,_,_, _,MaxConsecutiveShifts,_,_,_), Nurses),
@@ -83,26 +83,42 @@ set_max_consec_shifts_schedule(Schedule, [NurseID, MaxConsecutiveShifts]):-
     nth1(NurseID,Schedule,NurseSchedule),
     set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts).
 
-exactly(_, [], 0).
-exactly(X, [Y|L], N) :-
-    X #= Y #<=> B,
-    N #= M+B,
-    exactly(X, L, M).
 
 set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
-    length(NurseSchedule, MaxConsecutiveShifts).
+    create_arcs_max_consec(MaxConsecutiveShifts,Arcs),
+    create_sources_sinks_max_consec(MaxConsecutiveShifts,SourcesSinks),
+
+    %write(SourcesSinks),nl,
+    %write(Arcs),nl,
+    %!,
+    automaton(NurseSchedule,SourcesSinks,Arcs).
 
 
-set_max_consec_shifts_nurse(NurseSchedule,MaxConsecutiveShifts):-
-    prefix_length(NurseSchedule, FirstDays, MaxConsecutiveShifts),
-    nth0(MaxConsecutiveShifts,NurseSchedule,NextDay),
-    exactly(0,FirstDays,NumberDaysOff),
-    (NumberDaysOff #= 0) #=> (NextDay #=0),
-    NurseSchedule = [_|ScheduleNurseRemain],
-    set_max_consec_shifts_nurse(ScheduleNurseRemain,MaxConsecutiveShifts).
+create_sources_sinks_max_consec(MaxConsecutiveShifts,SourcesSinks):-
+    SourcesSinksAux = [source(w0),sink(w0)],
+    findall(sink(ShiftDay),between(1,MaxConsecutiveShifts,ShiftDay), Sinks),
+    append(SourcesSinksAux,Sinks,SourcesSinks).
+
+create_arcs_max_consec(MaxConsecutiveShifts,Arcs):-
+    create_arcs_max_consec_aux(MaxConsecutiveShifts,1,Arcs).
+
+create_arcs_max_consec_aux(MaxConsecutiveShifts,MaxConsecutiveShifts,Arcs):-
+    InitialArcs = [arc(w0,0,w0),arc(MaxConsecutiveShifts,0,w0)],
+    create_arcs_per_shift(w0,1,ArcsW0),
+    append(InitialArcs,ArcsW0,Arcs).
+    %printBoardLine(Arcs).
+
+
+create_arcs_max_consec_aux(MaxConsecutiveShifts,Counter,Arcs):-
+    CounterPlus1 is Counter+1,
+    create_arcs_per_shift(Counter,CounterPlus1,ArcsW),
+    ArcOrigin = arc(Counter,0,w0),
+    append([ArcOrigin|ArcsW],ArcsRemain,Arcs),
+    create_arcs_max_consec_aux(MaxConsecutiveShifts,CounterPlus1,ArcsRemain).
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % Constrain 7

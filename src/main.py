@@ -62,9 +62,9 @@ def createSolDirectory():
 def writeCSVFile(sol):
     file_exists = os.path.isfile(CSV_FILE_PATH)
 
-    with open(CSV_FILE_PATH, mode='w') as sols_file:
+    with open(CSV_FILE_PATH, mode='a+') as sols_file:
         headers = ['intance', 'timeToSearch', 'options', 'flag',
-                   'penalty']
+                   'penalty','resumptions','entailments','prunings','backtracks','constraints']
         writer = csv.DictWriter(sols_file, delimiter=',',
                                 lineterminator='\n',
                                 fieldnames=headers,
@@ -80,7 +80,13 @@ def writeCSVFile(sol):
             'timeToSearch': SEARCH_TIME,
             'options': OPTIONS,
             'flag': sol['flag'],
-            'penalty': sol['totalPenalty'],
+			'penalty': sol['totalPenalty'],
+            'resumptions': sol['resumptions'],
+			'entailments': sol['entailments'],
+			'prunings': sol['prunings'],
+			'backtracks': sol['backtracks'],
+			'constraints': sol['constraints']
+
             }
 
         writer.writerow(dictSol)
