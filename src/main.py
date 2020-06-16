@@ -12,13 +12,14 @@ from Parser.parser import Parser
 from Parser.prologer import Prologer
 from Parser.xmler import XMLer
 
+# SICStus Path
+SICSTUS_PATH = 'sicstus'
 
 # Variables
 INSTANCE = 1
 SEARCH_TIME = 5 # in seconds
 SOL_PATH = 'sol/'
 SOLVER_PATH = 'src/Solver/solver.pl'
-SICSTUS_PATH = 'sicstus'
 OPTIONS = []
 CSV_FILE_PATH = SOL_PATH + 'sols.csv'
 
